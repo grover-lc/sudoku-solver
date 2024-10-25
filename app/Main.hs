@@ -1,8 +1,7 @@
 module Main where
 
 import Control.Monad (replicateM)
-import Data.Set (Set, singleton, size, elemAt, fromList)
-import Data.Array (Array, array, (!))
+import Data.Array
 
 
 -- define program flow
@@ -74,9 +73,9 @@ isFinished sudoku = all ((/=) ' ') (getArrayS sudoku)
 
 -- candidates
 
-newtype Candidates = Candidates (Array (Int, Int) (Set Char))
+newtype Candidates = Candidates (Array (Int, Int) [Char])
 
-getArrayC :: Candidates -> Array (Int, Int) (Set Char)
+getArrayC :: Candidates -> Array (Int, Int) [Char]
 getArrayC (Candidates cands) = cands
 
 sudokuCandidates :: Sudoku -> Candidates
@@ -84,17 +83,17 @@ sudokuCandidates sudoku = Candidates $ arrayBuilder
     [((i, j), positionToSet sudoku (i, j))
     | i <- [1..9], j <- [1..9]]
 
-positionToSet :: Sudoku -> (Int, Int) -> Set Char
+positionToSet :: Sudoku -> (Int, Int) -> [Char]
 positionToSet sudoku (i, j) =
     case getArrayS sudoku ! (i, j) of
-        ' ' -> fromList
+        ' ' ->
             [char
             | char <- "123456789"
             , notInRow sudoku char i
             , notInCol sudoku char j
             , notInBlock sudoku char (i, j)
             ]
-        char -> singleton char
+        char -> [char]
 
 notInRow :: Sudoku -> Char -> Int -> Bool
 notInRow sudoku char i =
@@ -116,10 +115,11 @@ candidatesSudoku cands = Sudoku $ arrayBuilder
     [((i, j), pickSingletons (getArrayC cands ! (i, j)))
     | i <- [1..9], j <- [1..9]]
 
-pickSingletons :: Set Char -> Char
+pickSingletons :: [Char] -> Char
 pickSingletons chars =
-    case size chars of
-        1 -> elemAt 0 chars
+    case chars of
+        [] -> 'e'
+        [char] -> char
         _ -> ' '
 
 
