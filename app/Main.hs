@@ -19,7 +19,7 @@ collectProblem = do
     putStrLn "Input Sudoku puzzle:"
     theLines <- replicateM 9 getLine
     if all isValidLine theLines
-        then return theLines
+        then return $ map completeLine theLines
         else do
             putStrLn
                 ("\nLines must be exactly 9 characters long, \
@@ -34,15 +34,19 @@ isValidLine :: String -> Bool
 isValidLine str = (hasCorrectLength str) && (hasCorrectChars str)
 
 hasCorrectLength :: String -> Bool
-hasCorrectLength = (==) 9 . length
+hasCorrectLength = (>=) 9 . length
 
 hasCorrectChars :: String -> Bool
 hasCorrectChars = all (\x -> elem x " 123456789")
+
+completeLine :: String -> String
+completeLine str = str ++ replicate (9 - length str) ' '
 
 
 -- sudoku operations
 
 newtype Sudoku = Sudoku (Array (Int, Int) Char)
+    deriving Eq
 
 getArrayS :: Sudoku -> Array (Int, Int) Char
 getArrayS (Sudoku sudokuArray) = sudokuArray
@@ -58,9 +62,10 @@ sudokuString :: Int -> Sudoku -> String
 sudokuString i sudoku = [getArrayS sudoku ! (i, j) | j <- [1..9]]
 
 solvePuzzle :: Sudoku -> Sudoku
-solvePuzzle sudoku = if isFinished sudoku
-    then sudoku
-    else solvePuzzle $ makeProgress sudoku
+solvePuzzle sudoku =
+    if (isFinished sudoku) || (makeProgress sudoku == sudoku)
+        then sudoku
+        else solvePuzzle $ makeProgress sudoku
 
 solvePuzzleStr :: [String] -> [String]
 solvePuzzleStr = sudokuList . solvePuzzle . listSudoku
@@ -71,9 +76,11 @@ makeProgress = candidatesSudoku . sudokuCandidates
 isFinished :: Sudoku -> Bool
 isFinished sudoku = all ((/=) ' ') (getArrayS sudoku)
 
+
 -- candidates
 
 newtype Candidates = Candidates (Array (Int, Int) [Char])
+    deriving Eq
 
 getArrayC :: Candidates -> Array (Int, Int) [Char]
 getArrayC (Candidates cands) = cands
