@@ -3,7 +3,6 @@ module Main where
 import Control.Monad (replicateM)
 import Data.Array
 
--- random edit to test
 
 -- define program flow
 
